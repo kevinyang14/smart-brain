@@ -18,7 +18,7 @@ class SignIn extends React.Component {
     }
     onSubmitSignIn = () => {
         console.log(this.state)
-        axios.post('http://protected-hamlet-43340.herokuapp.com/signin', {
+        axios.post('https://protected-hamlet-43340.herokuapp.com/signin', {
             email: this.state.signInEmail,
             password: this.state.signInPassword
         })

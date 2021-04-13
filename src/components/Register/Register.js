@@ -23,7 +23,7 @@ class Register extends React.Component {
 
     onSubmitSignUp = () => {
         console.log(this.state)
-        axios.post('http://protected-hamlet-43340.herokuapp.com/register', {
+        axios.post('https://protected-hamlet-43340.herokuapp.com/register', {
             name: this.state.signInName,
             email: this.state.signInEmail,
             password: this.state.signInPassword

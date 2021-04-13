@@ -73,11 +73,11 @@ class App extends React.Component {
     })
   }
 
-  componentDidMount() {
-    axios.get('http://protected-hamlet-43340.herokuapp.com/')
-      .then(response => response).catch(error => console.log(error))
-      .then(console.log)
-  }
+  // componentDidMount() {
+  //   axios.get('https://protected-hamlet-43340.herokuapp.com/')
+  //     .then(response => response).catch(error => console.log(error))
+  //     .then(console.log)
+  // }
 
   onInputChange = (event) => {
     this.setState({ input: event.target.value })
@@ -111,7 +111,7 @@ class App extends React.Component {
       .predict(FACE_DETECT_MODEL, this.state.input)
       .then((response) => {
         if (response) { 
-          axios.put('http://protected-hamlet-43340.herokuapp.com/image', {
+          axios.put('https://protected-hamlet-43340.herokuapp.com/image', {
             id: this.state.user.id
           }).then(response => {
             this.setState(Object.assign(this.state.user, {entries: response.data}))
