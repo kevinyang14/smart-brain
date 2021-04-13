@@ -2,13 +2,14 @@ import React from 'react'
 
 class Rank extends React.Component {
     render() {
+        const {name, entries} = this.props
         return (
             <div className = 'tc'>
                 <div className='white f3'>
-                    {'Kevin, your current rank is...'}
+                    {`${name} , your current rank is...`}
                 </div>
                 <div className='white f1'>
-                    {'#1'}
+                    {'#' + entries}
                 </div>
             </div>
         );

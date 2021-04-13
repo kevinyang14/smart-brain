@@ -1,16 +1,20 @@
 import React from 'react'
 import './App.css';
-import Logo from '../components/Logo'
-import Navigation from '../components/Navigation'
-import ImageLinkForm from '../components/ImageLinkForm'
-import Rank from '../components/Rank'
+import Logo from '../components/Logo/Logo'
+import Navigation from '../components/Navigation/Navigation'
+import ImageLinkForm from '../components/ImageLinkForm/ImageLinkForm'
+import Rank from '../components/Rank/Rank'
 import Particles from 'react-particles-js'
 import Clarifai, { FACE_DETECT_MODEL } from 'clarifai'
-import FaceRecognition from '../components/FaceRecognition';
+import FaceRecognition from '../components/FaceRecognition/FaceRecognition';
+import SignIn from '../components/SignIn/SignIn';
+import Register from '../components/Register/Register';
+import axios from 'axios'
 
 const app = new Clarifai.App({
   apiKey: '3961fd228de54fd2bea90d12d370d775'
 })
+
 
 const particleOptions = {
   particles: {
@@ -23,18 +27,60 @@ const particleOptions = {
     }
   }
 }
+
+const initialState = {
+      input: '',
+      imageUrl: '',
+      box: {},
+      route: 'signin',
+      isSignedIn: false,
+      user: {
+        id: '',
+        name: '',
+        email: '',
+        entries: 0,
+        joined: ''
+      }
+}
+
 class App extends React.Component {
-  constructor(props){ 
+  constructor(props) {
     super(props)
     this.state = {
       input: '',
       imageUrl: '',
-      box: {}
+      box: {},
+      route: 'signin',
+      isSignedIn: false,
+      user: {
+        id: '',
+        name: '',
+        email: '',
+        entries: 0,
+        joined: ''
+      }
     }
+  }
+  loadUser = (user) => {
+    this.setState({
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        entries: user.entries,
+        joined: user.joined
+      }
+    })
+  }
+
+  componentDidMount() {
+    axios.get('http://protected-hamlet-43340.herokuapp.com/')
+      .then(response => response).catch(error => console.log(error))
+      .then(console.log)
   }
 
   onInputChange = (event) => {
-    this.setState({input: event.target.value})
+    this.setState({ input: event.target.value })
     console.log(event.target.value)
 
   }
@@ -55,36 +101,71 @@ class App extends React.Component {
   }
 
   displayFaceBox = (box) => {
-    this.setState({box:box})
-    console.log(this.state.box)
+    this.setState({ box: box })
   }
 
   onButtonSubmit = () => {
-    this.setState({imageUrl:this.state.input})
+    this.setState({ imageUrl: this.state.input })
     console.log('click')
-    app.models.predict(FACE_DETECT_MODEL, this.state.input)
-      .then((response) => this.displayFaceBox(this.calculateFaceLocation(response))
-        //console.log(response.outputs[0].data.regions[0].region_info.bounding_box)
-      .catch(err =>  console.log(err))
-    );
+    app.models
+      .predict(FACE_DETECT_MODEL, this.state.input)
+      .then((response) => {
+        if (response) { 
+          axios.put('http://protected-hamlet-43340.herokuapp.com/image', {
+            id: this.state.user.id
+          }).then(response => {
+            this.setState(Object.assign(this.state.user, {entries: response.data}))
+          })
+        }
+        this.displayFaceBox(this.calculateFaceLocation(response))
+        }
+      )
   }
 
-  //"a403429f2ddf4b49b307e318f00e528b"
+  onRouteChange = (route) => {
+    if (route === 'signout') {
+      this.setState(initialState)
+    }else if (route === 'home') {
+      this.setState({ isSignedIn: true })
+    } else {
+      this.setState({ isSignedIn: false })
+    }
+    this.setState({ route: route })
+  }
 
-  render(){
+  conditionalRoute() {
+    const { imageUrl, route, box} = this.state
+    if (route === 'home') {
+      return (
+        <div>
+          <Logo />
+          <Rank name={this.state.user.name} entries={ this.state.user.entries}/>
+          <ImageLinkForm
+            onInputChange={this.onInputChange}
+            onButtonSubmit={this.onButtonSubmit} />
+          <FaceRecognition box={box} imageUrl={imageUrl} />
+        </div>
+      )
+    } else if (route === 'register') {
+      return <Register loadUser={this.loadUser} onRouteChange={this.onRouteChange} />
+    } else { 
+      return <SignIn loadUser={ this.loadUser} onRouteChange={this.onRouteChange} />
+    }
+  }
+
+  render() {
+    const { isSignedIn } = this.state
     return (
       <div>
-        <Particles className='particles' params={ particleOptions }/>
-        <Navigation />
-        <Logo />
-        <Rank/>
-        <ImageLinkForm
-          onInputChange={this.onInputChange}
-          onButtonSubmit={this.onButtonSubmit} />
-        <FaceRecognition box={this.state.box} imageUrl={ this.state.imageUrl}/>
+        <Particles className='particles' params={particleOptions} />
+        <Navigation isSignedIn={isSignedIn} onRouteChange={this.onRouteChange} />
+        {
+          this.conditionalRoute()
+        }
       </div>
     );
   }
 }
+
 
 export default App;
